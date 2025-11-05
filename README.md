@@ -6,3 +6,9 @@ This project is a budgeting app that prioritizes ease of use and simplicity, ena
 - Envelopes can be set up and forgotten, or adjusted as time goes on. Each envelope takes a percentage or constant amount of your incoming money.
 - Ideally, Plaid APIs (or similar) will be used to pull transaction (income and expense) data directly from your financial institution. If this is not feasible, this data will be entered manually through a simple form in the app.
   - Plaid or the user will categorize the transaction, and the app will use the category to determine which envelope it should count against.
+
+### Entity-Relationship Diagram
+Coming Soon
+
+### System Design
+Coming Soon
