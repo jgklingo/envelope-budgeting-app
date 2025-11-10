@@ -6,6 +6,32 @@ This project is a budgeting app that prioritizes ease of use and simplicity, ena
 - Envelopes can be set up and forgotten, or adjusted as time goes on. Each envelope takes a percentage or constant amount of your incoming money.
 - Ideally, Plaid APIs (or similar) will be used to pull transaction (income and expense) data directly from your financial institution. If this is not feasible, this data will be entered manually through a simple form in the app.
   - Plaid or the user will categorize the transaction, and the app will use the category to determine which envelope it should count against.
+ 
+### Requirements
+- Setup/settings page
+  - Can set interval of time on which the envelopes refresh (default monthly)
+  - Can create new envelopes and set their amounts
+    - Amounts can be fixed amounts or a percentage of income from the current or previous interval
+  - Can set envelopes to refresh or rollover, where envelopes that refresh reset to their configured amounts at the start of each interval and rollover envelopes keep a running total between intervals
+  - Can set push notifications when certain thresholds are reached in an envelope
+- Main screen that opens on launch
+  - Total money in and out during the interval
+  - A list of transactions to be categorized, which brings you to the Categorization screen when clicked
+  - Amount remaining in each envelope
+    - Expands when clicked to show the most recent transactions (in and out) in that category during the interval and a button to go to the envelope screen
+    - Settings icon to jump to the settings page where the envelope amount can be configured
+- Envelope screen
+  - Shows a list of transactions assigned to that envelope (money in and out)
+  - Clicking on a transaction expands it and provides more details (why it was categorized that way?)
+  - A button next to each expense transaction allows it to be recategorized to a different envelope
+    - A popup asks if this is a one-time recategorization or if the app should try to put all future matching transactions into this envelope
+  - A button next to each income transaction allows it to be fully or partially reallocated to a different envelope
+- Categorization screen
+  - Shows the amount of the transaction and other basic details
+  - Includes a dropdown to select which envelope it should be in (with some suggetions?)
+  - Can swipe left or right to move between uncategorized transactions
+- Tutorial screen
+  - Contains information about the envelope budgeting system and how to use the app
 
 ### Entity-Relationship Diagram
 Coming Soon
