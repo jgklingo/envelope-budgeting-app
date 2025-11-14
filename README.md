@@ -34,7 +34,7 @@ This project is a budgeting app that prioritizes ease of use and simplicity, ena
   - Contains information about the envelope budgeting system and how to use the app
 
 ### Entity-Relationship Diagram
-Coming Soon
+![ERD]("media/Final Project ERD.png")
 
 ### System Design
-Coming Soon
+![System Design Diagram]("media/Final Project System Design.png")
