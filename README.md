@@ -8,10 +8,12 @@ This project is a budgeting app that prioritizes ease of use and simplicity, ena
   - Plaid or the user will categorize the transaction, and the app will use the category to determine which envelope it should count against.
  
 ### Requirements
+##### Frontend
 - Setup/settings page
   - Can set interval of time on which the envelopes refresh (default monthly)
   - Can create new envelopes and set their amounts
     - Amounts can be fixed amounts or a percentage of income from the current or previous interval
+  - Can configure which Plaid categories correspond to the envelope
   - Can set envelopes to refresh or rollover, where envelopes that refresh reset to their configured amounts at the start of each interval and rollover envelopes keep a running total between intervals
   - Can set push notifications when certain thresholds are reached in an envelope
 - Main screen that opens on launch
@@ -32,6 +34,16 @@ This project is a budgeting app that prioritizes ease of use and simplicity, ena
   - Can swipe left or right to move between uncategorized transactions
 - Tutorial screen
   - Contains information about the envelope budgeting system and how to use the app
+- Local storage
+  - Transactions are saved locally each time they are synced from the backend, allowing the app to work offline
+##### Backend
+- Login functionality
+  - Envelopes and transactions are saved in the cloud and can be accessed from any device
+  - To start, authentication will be based only on email/password
+- Backend will pull in transactions from the Plaid Transactions API regularly (`/transactions/sync`)
+  - This will occur daily to start, since this is the frequency with which Plaid is updated
+  - Amount, date, description, and merchant name will all be used directly in the app. Category can be used for automatic envelope categorization.
+  - New transactions will automatically be allocated based on the envelope rules, which are also saved on the backend
 
 ### Entity-Relationship Diagram
 ![Entity-Relationship Diagram](/media/Final%20Project%20ERD.png)
