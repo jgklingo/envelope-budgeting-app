@@ -27,7 +27,7 @@ This project is a budgeting app that prioritizes ease of use and simplicity, ena
   - Clicking on a transaction expands it and provides more details (why it was categorized that way?)
   - A button next to each expense transaction allows it to be recategorized to a different envelope
     - A popup asks if this is a one-time recategorization or if the app should try to put all future matching transactions into this envelope
-  - A button next to each income transaction allows it to be fully or partially reallocated to a different envelope
+  - A button next to each income transaction allows it to be reallocated to a different envelope (full reallocation only)
 - Categorization screen
   - Shows the amount of the transaction and other basic details
   - Includes a dropdown to select which envelope it should be in (with some suggetions?)
@@ -43,7 +43,9 @@ This project is a budgeting app that prioritizes ease of use and simplicity, ena
 - Backend will pull in transactions from the Plaid Transactions API regularly (`/transactions/sync`)
   - This will occur daily to start, since this is the frequency with which Plaid is updated
   - Amount, date, description, and merchant name will all be used directly in the app. Category can be used for automatic envelope categorization.
+  - Transfer transactions (between accounts) will be filtered out and not stored or displayed
   - New transactions will automatically be allocated based on the envelope rules, which are also saved on the backend
+  - Transactions that don't match any rule will remain uncategorized and appear in the categorization list on the main screen
 
 ### Entity-Relationship Diagram
 ![Entity-Relationship Diagram](/media/Final%20Project%20ERD.png)
