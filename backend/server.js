@@ -4,7 +4,7 @@ import dotenv from 'dotenv';
 import { register, login, authenticateToken } from './auth.js';
 import { getEnvelopes, createEnvelope, updateEnvelope, deleteEnvelope, getEnvelopeRules, addEnvelopeRule } from './envelopes.js';
 import { getTransactions, categorizeTransaction, reallocateTransaction, createTransaction } from './transactions.js';
-import { createLinkToken, exchangePublicToken, syncTransactions } from './plaid.js';
+import { createLinkToken, exchangePublicToken, syncTransactions, createSandboxPublicToken } from './plaid.js';
 
 dotenv.config();
 
@@ -34,6 +34,7 @@ app.put('/transactions/:id/categorize', authenticateToken, categorizeTransaction
 app.post('/transactions/:id/reallocate', authenticateToken, reallocateTransaction);
 
 app.post('/plaid/link-token', authenticateToken, createLinkToken);
+app.post('/plaid/sandbox-link', authenticateToken, createSandboxPublicToken);
 app.post('/plaid/exchange-token', authenticateToken, exchangePublicToken);
 app.post('/plaid/sync', authenticateToken, syncTransactions);
 

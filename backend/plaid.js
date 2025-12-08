@@ -14,6 +14,26 @@ const configuration = new Configuration({
 
 const plaidClient = new PlaidApi(configuration);
 
+// Sandbox helper: Create a public token for testing
+export async function createSandboxPublicToken(req, res) {
+  try {
+    // Only allow in sandbox environment
+    if (process.env.PLAID_ENV !== 'sandbox') {
+      return res.status(403).json({ error: 'This endpoint is only available in sandbox mode' });
+    }
+
+    const response = await plaidClient.sandboxPublicTokenCreate({
+      institution_id: 'ins_109508', // First Platypus Bank
+      initial_products: ['transactions'],
+    });
+
+    res.json({ public_token: response.data.public_token });
+  } catch (error) {
+    console.error('Create sandbox token error:', error);
+    res.status(500).json({ error: 'Failed to create sandbox token' });
+  }
+}
+
 export async function createLinkToken(req, res) {
   try {
     const userId = req.user.userId;
@@ -49,9 +69,10 @@ export async function exchangePublicToken(req, res) {
     const accessToken = response.data.access_token;
     const itemId = response.data.item_id;
 
+    // Reset cursor when linking new account (cursor is tied to specific access_token)
     await query(
       `UPDATE users 
-       SET plaid_access_token = $1, plaid_item_id = $2, updated_at = CURRENT_TIMESTAMP
+       SET plaid_access_token = $1, plaid_item_id = $2, plaid_cursor = NULL, updated_at = CURRENT_TIMESTAMP
        WHERE id = $3`,
       [accessToken, itemId, userId]
     );
@@ -65,6 +86,7 @@ export async function exchangePublicToken(req, res) {
 
 export async function syncTransactions(req, res) {
   try {
+    console.log('Starting transaction sync...');
     const userId = req.user.userId;
 
     const userResult = await query('SELECT * FROM users WHERE id = $1', [userId]);
@@ -73,10 +95,13 @@ export async function syncTransactions(req, res) {
     }
 
     const user = userResult.rows[0];
+    console.log('User found, checking Plaid token...');
+
     if (!user.plaid_access_token) {
       return res.status(400).json({ error: 'No Plaid account linked' });
     }
 
+    console.log('Plaid token exists, starting sync...');
     let cursor = user.plaid_cursor;
     let hasMore = true;
     let added = [];
@@ -111,6 +136,11 @@ export async function syncTransactions(req, res) {
     );
     const rules = rulesResult.rows;
 
+    // Batch insert transactions for better performance
+    const valueSets = [];
+    const values = [];
+    let paramIndex = 1;
+
     for (const tx of added) {
       if (tx.pending) continue;
 
@@ -135,29 +165,41 @@ export async function syncTransactions(req, res) {
         }
       }
 
+      valueSets.push(`($${paramIndex}, $${paramIndex + 1}, $${paramIndex + 2}, $${paramIndex + 3}, $${paramIndex + 4}, $${paramIndex + 5}, $${paramIndex + 6}, $${paramIndex + 7}, $${paramIndex + 8}, $${paramIndex + 9}, $${paramIndex + 10}, $${paramIndex + 11})`);
+      values.push(transactionId, userId, envelopeId, tx.transaction_id, tx.date, amount, type, tx.name, tx.merchant_name, category, envelopeId ? true : false, categorizationSource);
+      paramIndex += 12;
+    }
+
+    if (valueSets.length > 0) {
       await query(
         `INSERT INTO transactions (id, user_id, envelope_id, plaid_transaction_id, datetime, amount, type, description, merchant_name, plaid_category, is_categorized, categorization_source)
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+         VALUES ${valueSets.join(', ')}
          ON CONFLICT (plaid_transaction_id) DO NOTHING`,
-        [transactionId, userId, envelopeId, tx.transaction_id, tx.date, amount, type, tx.name, tx.merchant_name, category, envelopeId ? true : false, categorizationSource]
+        values
       );
     }
 
-    for (const tx of modified) {
-      const amount = Math.abs(tx.amount);
-      const type = tx.amount > 0 ? 'EXPENSE' : 'INCOME';
-      const category = tx.personal_finance_category?.primary || tx.category?.[0] || null;
+    if (modified.length > 0) {
+      for (const tx of modified) {
+        const amount = Math.abs(tx.amount);
+        const type = tx.amount > 0 ? 'EXPENSE' : 'INCOME';
+        const category = tx.personal_finance_category?.primary || tx.category?.[0] || null;
 
+        await query(
+          `UPDATE transactions
+           SET datetime = $1, amount = $2, type = $3, description = $4, merchant_name = $5, plaid_category = $6
+           WHERE plaid_transaction_id = $7`,
+          [tx.date, amount, type, tx.name, tx.merchant_name, category, tx.transaction_id]
+        );
+      }
+    }
+
+    if (removed.length > 0) {
+      const removedIds = removed.map(tx => tx.transaction_id);
       await query(
-        `UPDATE transactions
-         SET datetime = $1, amount = $2, type = $3, description = $4, merchant_name = $5, plaid_category = $6
-         WHERE plaid_transaction_id = $7`,
-        [tx.date, amount, type, tx.name, tx.merchant_name, category, tx.transaction_id]
+        `DELETE FROM transactions WHERE plaid_transaction_id = ANY($1)`,
+        [removedIds]
       );
-    }
-
-    for (const removedTx of removed) {
-      await query('DELETE FROM transactions WHERE plaid_transaction_id = $1', [removedTx.transaction_id]);
     }
 
     res.json({
@@ -168,6 +210,7 @@ export async function syncTransactions(req, res) {
     });
   } catch (error) {
     console.error('Sync transactions error:', error);
-    res.status(500).json({ error: 'Failed to sync transactions' });
+    console.error('Full error details:', error.response?.data || error);
+    res.status(500).json({ error: 'Failed to sync transactions', details: error.message });
   }
 }

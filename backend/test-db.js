@@ -40,11 +40,12 @@ async function testConnection() {
     console.log('Test 2: Creating test user...');
     const userId = crypto.randomUUID();
     const cognitoSub = `test-${Date.now()}`;
+    const testEmail = `test-${Date.now()}@example.com`;
 
     await client.query(`
       INSERT INTO users (id, cognito_sub, email, name)
       VALUES ($1, $2, $3, $4)
-    `, [userId, cognitoSub, 'test@example.com', 'Test User']);
+    `, [userId, cognitoSub, testEmail, 'Test User']);
     console.log(`✓ Created user with ID: ${userId}\n`);
 
     // Test 3: Create a test envelope
