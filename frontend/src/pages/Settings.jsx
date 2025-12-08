@@ -262,6 +262,9 @@ function Settings({ token }) {
                 <p style={{ color: '#666', marginTop: '5px' }}>
                   Budget: ${parseFloat(env.amount).toFixed(2)} / month
                 </p>
+                <p style={{ color: parseFloat(env.amount_remaining) < 0 ? '#f44336' : '#666' }}>
+                  Amount Remaining: ${parseFloat(env.amount_remaining || 0).toFixed(2)}
+                </p>
                 <p style={{ color: '#666' }}>
                   Current Balance: ${parseFloat(env.current_balance || 0).toFixed(2)}
                 </p>

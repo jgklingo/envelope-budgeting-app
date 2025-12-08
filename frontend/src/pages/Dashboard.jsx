@@ -178,8 +178,11 @@ function Dashboard({ token }) {
               onClick={() => setExpandedEnvelope(expandedEnvelope === env.id ? null : env.id)}>
               <div>
                 <h3>{env.name}</h3>
-                <p style={{ color: parseFloat(env.current_balance) < 0 ? '#f44336' : '#666' }}>
-                  Balance: ${parseFloat(env.current_balance || 0).toFixed(2)} / ${parseFloat(env.amount).toFixed(2)}
+                <p style={{ color: parseFloat(env.amount_remaining) < 0 ? '#f44336' : '#666', marginTop: '5px' }}>
+                  Remaining: <span style={{ fontWeight: 'bold' }}>${parseFloat(env.amount_remaining || 0).toFixed(2)}</span> of ${parseFloat(env.amount).toFixed(2)}
+                </p>
+                <p style={{ fontSize: '14px', color: '#999', marginTop: '3px' }}>
+                  Balance: ${parseFloat(env.current_balance || 0).toFixed(2)}
                 </p>
               </div>
               <button onClick={(e) => { e.stopPropagation(); navigate('/settings') }} className="btn btn-secondary">⚙️</button>

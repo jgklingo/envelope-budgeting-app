@@ -7,7 +7,8 @@ export async function getEnvelopes(req, res) {
 
     const result = await query(
       `SELECT e.*, 
-        COALESCE(SUM(CASE WHEN t.type = 'EXPENSE' THEN -t.amount WHEN t.type = 'INCOME' THEN t.amount ELSE 0 END), 0) as current_balance
+        COALESCE(SUM(CASE WHEN t.type = 'EXPENSE' THEN t.amount ELSE 0 END), 0) as spent,
+        COALESCE(SUM(CASE WHEN t.type = 'INCOME' THEN t.amount ELSE 0 END), 0) as allocated
        FROM envelopes e
        LEFT JOIN transactions t ON e.id = t.envelope_id
        WHERE e.user_id = $1
@@ -16,7 +17,14 @@ export async function getEnvelopes(req, res) {
       [userId]
     );
 
-    res.json(result.rows);
+    // Calculate amount_remaining and current_balance for each envelope
+    const envelopes = result.rows.map(env => ({
+      ...env,
+      amount_remaining: parseFloat(env.amount) - parseFloat(env.spent),
+      current_balance: parseFloat(env.allocated)
+    }));
+
+    res.json(envelopes);
   } catch (error) {
     console.error('Get envelopes error:', error);
     res.status(500).json({ error: 'Failed to retrieve envelopes' });

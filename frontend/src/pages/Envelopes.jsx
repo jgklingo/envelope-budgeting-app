@@ -76,9 +76,10 @@ function Envelopes({ token }) {
         {selectedEnv && (
           <div style={{ marginTop: '15px' }}>
             <p><strong>Budget:</strong> ${parseFloat(selectedEnv.amount).toFixed(2)}</p>
-            <p><strong>Current Balance:</strong> <span style={{ color: parseFloat(selectedEnv.current_balance) < 0 ? '#f44336' : '#4CAF50' }}>
-              ${parseFloat(selectedEnv.current_balance || 0).toFixed(2)}
+            <p><strong>Amount Remaining:</strong> <span style={{ color: parseFloat(selectedEnv.amount_remaining) < 0 ? '#f44336' : '#4CAF50' }}>
+              ${parseFloat(selectedEnv.amount_remaining || 0).toFixed(2)}
             </span></p>
+            <p><strong>Current Balance:</strong> ${parseFloat(selectedEnv.current_balance || 0).toFixed(2)}</p>
           </div>
         )}
       </div>
