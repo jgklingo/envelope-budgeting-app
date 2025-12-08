@@ -1,5 +1,16 @@
 const API_BASE = '/api'
 
+// Helper function to handle responses and check for auth errors
+const handleResponse = async (res) => {
+  if (res.status === 401 || res.status === 403) {
+    // Token is invalid or expired
+    localStorage.removeItem('token')
+    window.location.href = '/login'
+    throw new Error('Authentication expired. Please log in again.')
+  }
+  return res.json()
+}
+
 export const api = {
   // Auth
   register: async (email, password) => {
@@ -25,7 +36,7 @@ export const api = {
     const res = await fetch(`${API_BASE}/envelopes`, {
       headers: { 'Authorization': `Bearer ${token}` }
     })
-    return res.json()
+    return handleResponse(res)
   },
 
   createEnvelope: async (token, envelope) => {
@@ -37,7 +48,7 @@ export const api = {
       },
       body: JSON.stringify(envelope)
     })
-    return res.json()
+    return handleResponse(res)
   },
 
   updateEnvelope: async (token, id, envelope) => {
@@ -49,7 +60,7 @@ export const api = {
       },
       body: JSON.stringify(envelope)
     })
-    return res.json()
+    return handleResponse(res)
   },
 
   deleteEnvelope: async (token, id) => {
@@ -57,7 +68,7 @@ export const api = {
       method: 'DELETE',
       headers: { 'Authorization': `Bearer ${token}` }
     })
-    return res.json()
+    return handleResponse(res)
   },
 
   // Transactions
@@ -66,7 +77,7 @@ export const api = {
     const res = await fetch(`${API_BASE}/transactions?${params}`, {
       headers: { 'Authorization': `Bearer ${token}` }
     })
-    return res.json()
+    return handleResponse(res)
   },
 
   categorizeTransaction: async (token, id, envelopeId, applyRule) => {
@@ -78,7 +89,7 @@ export const api = {
       },
       body: JSON.stringify({ envelope_id: envelopeId, apply_rule: applyRule })
     })
-    return res.json()
+    return handleResponse(res)
   },
 
   reallocateTransaction: async (token, id, envelopeId) => {
@@ -90,7 +101,7 @@ export const api = {
       },
       body: JSON.stringify({ envelope_id: envelopeId })
     })
-    return res.json()
+    return handleResponse(res)
   },
 
   // Plaid
@@ -99,7 +110,7 @@ export const api = {
       method: 'POST',
       headers: { 'Authorization': `Bearer ${token}` }
     })
-    return res.json()
+    return handleResponse(res)
   },
 
   exchangePublicToken: async (token, publicToken) => {
@@ -111,7 +122,7 @@ export const api = {
       },
       body: JSON.stringify({ public_token: publicToken })
     })
-    return res.json()
+    return handleResponse(res)
   },
 
   syncTransactions: async (token) => {
@@ -119,7 +130,7 @@ export const api = {
       method: 'POST',
       headers: { 'Authorization': `Bearer ${token}` }
     })
-    return res.json()
+    return handleResponse(res)
   },
 
   // User Settings
@@ -127,7 +138,7 @@ export const api = {
     const res = await fetch(`${API_BASE}/user/settings`, {
       headers: { 'Authorization': `Bearer ${token}` }
     })
-    return res.json()
+    return handleResponse(res)
   },
 
   updateUserSettings: async (token, settings) => {
@@ -139,6 +150,6 @@ export const api = {
       },
       body: JSON.stringify(settings)
     })
-    return res.json()
+    return handleResponse(res)
   }
 }
