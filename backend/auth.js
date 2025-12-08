@@ -45,7 +45,7 @@ export async function register(req, res) {
           userId,
           email,
           name,
-          message: 'User registered successfully. Please check your email for verification code.'
+          message: 'User registered successfully. Please check your email for verification.'
         });
       } catch (dbErr) {
         console.error('Database error:', dbErr);

@@ -13,11 +13,11 @@ const handleResponse = async (res) => {
 
 export const api = {
   // Auth
-  register: async (email, password) => {
+  register: async (email, password, name) => {
     const res = await fetch(`${API_BASE}/register`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password })
+      body: JSON.stringify({ email, password, name })
     })
     return res.json()
   },

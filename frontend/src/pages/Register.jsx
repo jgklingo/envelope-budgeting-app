@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { api } from '../utils/api'
 
 function Register({ setToken }) {
+  const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
@@ -21,12 +22,14 @@ function Register({ setToken }) {
     setLoading(true)
 
     try {
-      const data = await api.register(email, password)
+      const data = await api.register(email, password, name)
       console.log('Register response:', data)
       if (data.error) {
         setError(data.error)
-      } else if (data.token || data.accessToken) {
-        setToken(data.token || data.accessToken)
+      } else if (data.message) {
+        // Registration successful - show confirmation message
+        alert('✓ Registration successful!\n\nPlease check your email for a confirmation link from AWS Cognito.\n\nAfter confirming your email, return here to log in.')
+        window.location.href = '/login'
       } else {
         setError('Invalid response from server')
       }
@@ -43,6 +46,15 @@ function Register({ setToken }) {
       <div className="card">
         <h1 style={{ marginBottom: '20px', textAlign: 'center' }}>Register</h1>
         <form onSubmit={handleSubmit}>
+          <div className="form-group">
+            <label>Name</label>
+            <input
+              type="text"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              required
+            />
+          </div>
           <div className="form-group">
             <label>Email</label>
             <input
