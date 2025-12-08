@@ -7,5 +7,6 @@
 | 11/17 | Work with AI to refine requirements and create an implementation plan   | 1.0   |
 | 11/22 | Research Plaid API and AWS RDS PostgreSQL, set up API keys              | 1.5   |
 | 11/28 | Set up AWS services, create database schema, troubleshoot db connection | 2.0   |
-| 11/2  | Peer reviews and collaboration report                                   | 1.0   |
-| 11/3  | Implement backend                                                       | 2.0   |
+| 12/2  | Peer reviews and collaboration report                                   | 1.0   |
+| 12/3  | Start to implement backend                                              | 2.0   |
+| 12/7  | Finish backend implementation, implement MVP frontend                   | 3.0   |
