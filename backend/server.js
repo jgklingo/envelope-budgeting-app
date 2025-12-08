@@ -1,7 +1,7 @@
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
-import { register, login, authenticateToken } from './auth.js';
+import { register, login, authenticateToken, getUserSettings, updateUserSettings } from './auth.js';
 import { getEnvelopes, createEnvelope, updateEnvelope, deleteEnvelope, getEnvelopeRules, addEnvelopeRule } from './envelopes.js';
 import { getTransactions, categorizeTransaction, reallocateTransaction, createTransaction } from './transactions.js';
 import { createLinkToken, exchangePublicToken, syncTransactions, createSandboxPublicToken } from './plaid.js';
@@ -20,6 +20,8 @@ app.get('/health', (req, res) => {
 
 app.post('/register', register);
 app.post('/login', login);
+app.get('/user/settings', authenticateToken, getUserSettings);
+app.put('/user/settings', authenticateToken, updateUserSettings);
 
 app.get('/envelopes', authenticateToken, getEnvelopes);
 app.post('/envelopes', authenticateToken, createEnvelope);

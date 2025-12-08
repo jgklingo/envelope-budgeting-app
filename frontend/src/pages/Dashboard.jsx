@@ -6,6 +6,7 @@ function Dashboard({ token }) {
   const [envelopes, setEnvelopes] = useState([])
   const [transactions, setTransactions] = useState([])
   const [uncategorized, setUncategorized] = useState([])
+  const [userSettings, setUserSettings] = useState({})
   const [loading, setLoading] = useState(true)
   const [syncing, setSyncing] = useState(false)
   const [expandedEnvelope, setExpandedEnvelope] = useState(null)
@@ -15,18 +16,89 @@ function Dashboard({ token }) {
     loadData()
   }, [])
 
+  const getCurrentPeriodDates = (settings) => {
+    if (!settings.interval_start_date || !settings.interval_type) return { start: null, end: null }
+
+    // Parse the start date and extract just the date part (YYYY-MM-DD)
+    const datePart = settings.interval_start_date.split('T')[0]
+    const [year, month, day] = datePart.split('-').map(Number)
+
+    // Create date using UTC to avoid timezone issues
+    const startDate = new Date(Date.UTC(year, month - 1, day))
+    const today = new Date()
+
+    // Calculate how many periods have passed
+    let periodStart = new Date(startDate.getTime())
+
+    while (periodStart <= today) {
+      const nextPeriod = new Date(periodStart.getTime())
+
+      switch (settings.interval_type) {
+        case 'WEEKLY':
+          nextPeriod.setUTCDate(nextPeriod.getUTCDate() + 7)
+          break
+        case 'BIWEEKLY':
+          nextPeriod.setUTCDate(nextPeriod.getUTCDate() + 14)
+          break
+        case 'MONTHLY':
+          nextPeriod.setUTCMonth(nextPeriod.getUTCMonth() + 1)
+          break
+        case 'YEARLY':
+          nextPeriod.setUTCFullYear(nextPeriod.getUTCFullYear() + 1)
+          break
+      }
+
+      if (nextPeriod > today) break
+      periodStart = new Date(nextPeriod.getTime())
+    }
+
+    const periodEnd = new Date(periodStart.getTime())
+    switch (settings.interval_type) {
+      case 'WEEKLY':
+        periodEnd.setUTCDate(periodEnd.getUTCDate() + 7)
+        break
+      case 'BIWEEKLY':
+        periodEnd.setUTCDate(periodEnd.getUTCDate() + 14)
+        break
+      case 'MONTHLY':
+        periodEnd.setUTCMonth(periodEnd.getUTCMonth() + 1)
+        break
+      case 'YEARLY':
+        periodEnd.setUTCFullYear(periodEnd.getUTCFullYear() + 1)
+        break
+    }
+
+    return { start: periodStart, end: periodEnd }
+  }
+
   const loadData = async () => {
     setLoading(true)
     try {
-      const [envData, txData] = await Promise.all([
+      const [envData, txData, settingsData] = await Promise.all([
         api.getEnvelopes(token),
-        api.getTransactions(token, { limit: 100 })
+        api.getTransactions(token, { limit: 1000 }),
+        api.getUserSettings(token)
       ])
 
-      if (envData.envelopes) setEnvelopes(envData.envelopes)
+      if (Array.isArray(envData)) setEnvelopes(envData)
+      if (settingsData) setUserSettings(settingsData)
+
       if (Array.isArray(txData)) {
-        setTransactions(txData)
-        setUncategorized(txData.filter(t => !t.is_categorized))
+        // Filter transactions by current period
+        const { start, end } = getCurrentPeriodDates(settingsData)
+        console.log('Period:', { start, end })
+        console.log('Total transactions:', txData.length)
+
+        const filtered = start ? txData.filter(t => {
+          const txDate = new Date(t.datetime)
+          return txDate >= start && txDate < end
+        }) : txData
+
+        console.log('Filtered transactions:', filtered.length)
+        console.log('Sample transaction date:', txData[0]?.datetime)
+
+        setTransactions(filtered)
+        setUncategorized(filtered.filter(t => !t.is_categorized))
       }
     } catch (err) {
       console.error('Failed to load data:', err)
@@ -120,7 +192,7 @@ function Dashboard({ token }) {
                   <div key={tx.id} style={{ padding: '10px 0', borderBottom: '1px solid #f0f0f0', display: 'flex', justifyContent: 'space-between' }}>
                     <div>
                       <div style={{ fontWeight: '500' }}>{tx.merchant_name || tx.description || 'Transaction'}</div>
-                      <div style={{ fontSize: '12px', color: '#666' }}>{new Date(tx.date).toLocaleDateString()}</div>
+                      <div style={{ fontSize: '12px', color: '#666' }}>{new Date(tx.datetime).toLocaleDateString()}</div>
                     </div>
                     <div style={{ fontWeight: 'bold', color: tx.amount < 0 ? '#f44336' : '#4CAF50' }}>
                       ${Math.abs(parseFloat(tx.amount)).toFixed(2)}

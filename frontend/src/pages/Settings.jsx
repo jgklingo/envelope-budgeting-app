@@ -3,6 +3,7 @@ import { api } from '../utils/api'
 
 function Settings({ token }) {
   const [envelopes, setEnvelopes] = useState([])
+  const [userSettings, setUserSettings] = useState({})
   const [loading, setLoading] = useState(true)
   const [showCreate, setShowCreate] = useState(false)
   const [editingEnvelope, setEditingEnvelope] = useState(null)
@@ -13,16 +14,20 @@ function Settings({ token }) {
   })
 
   useEffect(() => {
-    loadEnvelopes()
+    loadData()
   }, [])
 
-  const loadEnvelopes = async () => {
+  const loadData = async () => {
     setLoading(true)
     try {
-      const data = await api.getEnvelopes(token)
-      if (data.envelopes) setEnvelopes(data.envelopes)
+      const [envData, settingsData] = await Promise.all([
+        api.getEnvelopes(token),
+        api.getUserSettings(token)
+      ])
+      if (Array.isArray(envData)) setEnvelopes(envData)
+      if (settingsData) setUserSettings(settingsData)
     } catch (err) {
-      console.error('Failed to load envelopes:', err)
+      console.error('Failed to load data:', err)
     } finally {
       setLoading(false)
     }
@@ -31,17 +36,26 @@ function Settings({ token }) {
   const handleSubmit = async (e) => {
     e.preventDefault()
     try {
-      if (editingEnvelope) {
-        await api.updateEnvelope(token, editingEnvelope.id, formData)
-      } else {
-        await api.createEnvelope(token, formData)
+      // Map frontend formData to backend schema
+      const envelopeData = {
+        name: formData.name,
+        amount_type: 'FIXED',
+        amount: parseFloat(formData.amount),
+        refresh_type: formData.rollover ? 'ROLLOVER' : 'REFRESH'
       }
-      await loadEnvelopes()
+
+      if (editingEnvelope) {
+        await api.updateEnvelope(token, editingEnvelope.id, envelopeData)
+      } else {
+        await api.createEnvelope(token, envelopeData)
+      }
+      await loadData()
       setShowCreate(false)
       setEditingEnvelope(null)
       setFormData({ name: '', amount: '', rollover: false })
     } catch (err) {
       console.error('Failed to save envelope:', err)
+      alert('Failed to save envelope: ' + (err.message || 'Unknown error'))
     }
   }
 
@@ -50,7 +64,7 @@ function Settings({ token }) {
     setFormData({
       name: envelope.name,
       amount: envelope.amount,
-      rollover: envelope.rollover
+      rollover: envelope.refresh_type === 'ROLLOVER'
     })
     setShowCreate(true)
   }
@@ -59,9 +73,23 @@ function Settings({ token }) {
     if (!confirm('Are you sure you want to delete this envelope?')) return
     try {
       await api.deleteEnvelope(token, id)
-      await loadEnvelopes()
+      await loadData()
     } catch (err) {
       console.error('Failed to delete envelope:', err)
+    }
+  }
+
+  const handleIntervalUpdate = async (e) => {
+    e.preventDefault()
+    try {
+      await api.updateUserSettings(token, {
+        interval_type: userSettings.interval_type,
+        interval_start_date: userSettings.interval_start_date
+      })
+      alert('Interval settings updated successfully!')
+    } catch (err) {
+      console.error('Failed to update interval:', err)
+      alert('Failed to update settings')
     }
   }
 
@@ -76,6 +104,43 @@ function Settings({ token }) {
   return (
     <div className="container">
       <h1 style={{ marginBottom: '20px' }}>Settings</h1>
+
+      {/* Budget Interval Section */}
+      <div className="card">
+        <h2>Budget Interval</h2>
+        <p style={{ color: '#666', marginBottom: '15px' }}>
+          Configure how often your envelopes refresh.
+        </p>
+        <form onSubmit={handleIntervalUpdate}>
+          <div className="form-group">
+            <label>Interval Type</label>
+            <select
+              value={userSettings.interval_type || 'MONTHLY'}
+              onChange={(e) => setUserSettings({ ...userSettings, interval_type: e.target.value })}
+            >
+              <option value="WEEKLY">Weekly</option>
+              <option value="BIWEEKLY">Bi-Weekly</option>
+              <option value="MONTHLY">Monthly</option>
+              <option value="YEARLY">Yearly</option>
+            </select>
+          </div>
+          <div className="form-group">
+            <label>Start Date</label>
+            <input
+              type="date"
+              value={userSettings.interval_start_date?.split('T')[0] || ''}
+              onChange={(e) => setUserSettings({ ...userSettings, interval_start_date: e.target.value })}
+              required
+            />
+            <small style={{ color: '#666', display: 'block', marginTop: '5px' }}>
+              The date when your budget period starts (e.g., paycheck date)
+            </small>
+          </div>
+          <button type="submit" className="btn btn-primary">
+            Save Interval Settings
+          </button>
+        </form>
+      </div>
 
       {/* Bank Sync Section */}
       <div className="card">
@@ -201,7 +266,7 @@ function Settings({ token }) {
                   Current Balance: ${parseFloat(env.current_balance || 0).toFixed(2)}
                 </p>
                 <p style={{ fontSize: '14px', color: '#999', marginTop: '5px' }}>
-                  {env.rollover ? '✓ Rollover enabled' : 'Resets each period'}
+                  {env.refresh_type === 'ROLLOVER' ? '✓ Rollover enabled' : 'Resets each period'}
                 </p>
               </div>
               <div style={{ display: 'flex', gap: '10px' }}>

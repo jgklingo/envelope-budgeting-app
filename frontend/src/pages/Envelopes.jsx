@@ -21,11 +21,11 @@ function Envelopes({ token }) {
         api.getTransactions(token, { limit: 500 })
       ])
 
-      if (envData.envelopes) setEnvelopes(envData.envelopes)
-      if (txData.transactions) setTransactions(txData.transactions)
+      if (Array.isArray(envData)) setEnvelopes(envData)
+      if (Array.isArray(txData)) setTransactions(txData)
 
-      if (envData.envelopes && envData.envelopes.length > 0 && !selectedEnvelope) {
-        setSelectedEnvelope(envData.envelopes[0].id)
+      if (Array.isArray(envData) && envData.length > 0 && !selectedEnvelope) {
+        setSelectedEnvelope(envData[0].id)
       }
     } catch (err) {
       console.error('Failed to load data:', err)
@@ -67,7 +67,7 @@ function Envelopes({ token }) {
       <div className="card">
         <div className="form-group">
           <label>Select Envelope</label>
-          <select value={selectedEnvelope || ''} onChange={(e) => setSelectedEnvelope(parseInt(e.target.value))}>
+          <select value={selectedEnvelope || ''} onChange={(e) => setSelectedEnvelope(e.target.value)}>
             {envelopes.map(env => (
               <option key={env.id} value={env.id}>{env.name}</option>
             ))}
@@ -96,7 +96,7 @@ function Envelopes({ token }) {
               <div style={{ flex: 1 }}>
                 <h3>{tx.merchant_name || tx.description || 'Transaction'}</h3>
                 <p style={{ fontSize: '14px', color: '#666', marginTop: '5px' }}>
-                  {new Date(tx.date).toLocaleDateString()} • Category: {tx.category || 'None'}
+                  {new Date(tx.datetime).toLocaleDateString()} • Category: {tx.plaid_category || 'None'}
                 </p>
                 {tx.plaid_category && (
                   <p style={{ fontSize: '12px', color: '#999' }}>Plaid Category: {tx.plaid_category}</p>

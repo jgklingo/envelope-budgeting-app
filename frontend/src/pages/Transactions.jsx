@@ -18,9 +18,9 @@ function Transactions({ token }) {
         api.getTransactions(token, { limit: 500 }),
         api.getEnvelopes(token)
       ])
-      
+
       if (Array.isArray(txData)) setTransactions(txData)
-      if (envData.envelopes) setEnvelopes(envData.envelopes)
+      if (Array.isArray(envData)) setEnvelopes(envData)
     } catch (err) {
       console.error('Failed to load data:', err)
     } finally {
@@ -77,7 +77,7 @@ function Transactions({ token }) {
                     {new Date(tx.datetime).toLocaleDateString()} • {getEnvelopeName(tx.envelope_id)}
                   </p>
                   {tx.plaid_category && (
-                    <p style={{ fontSize: '12px', color: '#999' }}>Category: {tx.plaid_category}</p>
+                    <p style={{ fontSize: '12px', color: '#999' }}>Plaid Category: {tx.plaid_category}</p>
                   )}
                 </div>
                 <div style={{ textAlign: 'right', marginLeft: '20px' }}>

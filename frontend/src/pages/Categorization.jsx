@@ -21,11 +21,11 @@ function Categorization({ token }) {
         api.getEnvelopes(token)
       ])
 
-      if (txData.transactions) {
-        const uncat = txData.transactions.filter(t => !t.envelope_id && t.amount < 0)
+      if (Array.isArray(txData)) {
+        const uncat = txData.filter(t => !t.is_categorized)
         setUncategorized(uncat)
       }
-      if (envData.envelopes) setEnvelopes(envData.envelopes)
+      if (Array.isArray(envData)) setEnvelopes(envData)
     } catch (err) {
       console.error('Failed to load data:', err)
     } finally {
@@ -93,10 +93,10 @@ function Categorization({ token }) {
         <div style={{ padding: '20px', background: '#f5f5f5', borderRadius: '5px', marginBottom: '20px' }}>
           <h2>{currentTx.merchant_name || currentTx.description || 'Transaction'}</h2>
           <p style={{ fontSize: '32px', fontWeight: 'bold', color: '#f44336', marginTop: '10px' }}>
-            ${Math.abs(parseFloat(currentTx.amount)).toFixed(2)}
+            ${parseFloat(currentTx.amount).toFixed(2)}
           </p>
           <p style={{ color: '#666', marginTop: '10px' }}>
-            {new Date(currentTx.date).toLocaleDateString()}
+            {new Date(currentTx.datetime).toLocaleDateString()}
           </p>
           {currentTx.plaid_category && (
             <p style={{ fontSize: '14px', color: '#999', marginTop: '5px' }}>
@@ -136,7 +136,7 @@ function Categorization({ token }) {
             onClick={() => {
               const select = document.getElementById('envelope-select')
               if (select.value) {
-                handleCategorize(parseInt(select.value))
+                handleCategorize(select.value)
               }
             }}
             className="btn btn-primary"

@@ -41,11 +41,11 @@ export async function register(req, res) {
           [userId, cognitoSub, email, name, 'MONTHLY']
         );
 
-        res.status(201).json({ 
-          userId, 
-          email, 
+        res.status(201).json({
+          userId,
+          email,
           name,
-          message: 'User registered successfully. Please check your email for verification code.' 
+          message: 'User registered successfully. Please check your email for verification code.'
         });
       } catch (dbErr) {
         console.error('Database error:', dbErr);
@@ -87,7 +87,7 @@ export async function login(req, res) {
 
         try {
           const userResult = await query('SELECT * FROM users WHERE cognito_sub = $1', [cognitoSub]);
-          
+
           if (userResult.rows.length === 0) {
             return res.status(404).json({ error: 'User not found in database' });
           }
@@ -129,15 +129,15 @@ export async function authenticateToken(req, res, next) {
   try {
     const command = new GetUserCommand({ AccessToken: token });
     const cognitoResponse = await cognitoClient.send(command);
-    
+
     const cognitoSub = cognitoResponse.UserAttributes.find(attr => attr.Name === 'sub')?.Value;
-    
+
     if (!cognitoSub) {
       return res.status(403).json({ error: 'Invalid token' });
     }
 
     const userResult = await query('SELECT * FROM users WHERE cognito_sub = $1', [cognitoSub]);
-    
+
     if (userResult.rows.length === 0) {
       return res.status(404).json({ error: 'User not found' });
     }
@@ -147,5 +147,62 @@ export async function authenticateToken(req, res, next) {
   } catch (error) {
     console.error('Token verification error:', error);
     res.status(403).json({ error: 'Invalid or expired token' });
+  }
+}
+
+export async function getUserSettings(req, res) {
+  try {
+    const userId = req.user.userId;
+    const result = await query(
+      'SELECT interval_type, interval_start_date, name, email FROM users WHERE id = $1',
+      [userId]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    res.json(result.rows[0]);
+  } catch (error) {
+    console.error('Get user settings error:', error);
+    res.status(500).json({ error: 'Failed to retrieve user settings' });
+  }
+}
+
+export async function updateUserSettings(req, res) {
+  try {
+    const userId = req.user.userId;
+    const { interval_type, interval_start_date } = req.body;
+
+    const updates = [];
+    const values = [];
+    let paramCount = 1;
+
+    if (interval_type) {
+      updates.push(`interval_type = $${paramCount}`);
+      values.push(interval_type);
+      paramCount++;
+    }
+
+    if (interval_start_date) {
+      updates.push(`interval_start_date = $${paramCount}`);
+      values.push(interval_start_date);
+      paramCount++;
+    }
+
+    if (updates.length === 0) {
+      return res.status(400).json({ error: 'No fields to update' });
+    }
+
+    values.push(userId);
+    await query(
+      `UPDATE users SET ${updates.join(', ')}, updated_at = CURRENT_TIMESTAMP WHERE id = $${paramCount}`,
+      values
+    );
+
+    res.json({ message: 'Settings updated successfully' });
+  } catch (error) {
+    console.error('Update user settings error:', error);
+    res.status(500).json({ error: 'Failed to update user settings' });
   }
 }

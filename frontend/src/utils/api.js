@@ -120,5 +120,25 @@ export const api = {
       headers: { 'Authorization': `Bearer ${token}` }
     })
     return res.json()
+  },
+
+  // User Settings
+  getUserSettings: async (token) => {
+    const res = await fetch(`${API_BASE}/user/settings`, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    })
+    return res.json()
+  },
+
+  updateUserSettings: async (token, settings) => {
+    const res = await fetch(`${API_BASE}/user/settings`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify(settings)
+    })
+    return res.json()
   }
 }
