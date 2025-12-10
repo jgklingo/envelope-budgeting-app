@@ -51,6 +51,7 @@ This project is a budgeting app that prioritizes ease of use and simplicity, ena
 
 ### Entity-Relationship Diagram
 ![Entity-Relationship Diagram](/media/Final%20Project%20ERD.png)
+See [schema.sql](/backend/schema.sql) for final schema.
 
 ### System Design
 ![System Design Diagram](media/Final%20Project%20System%20Design.png)
