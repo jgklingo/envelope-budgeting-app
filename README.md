@@ -56,6 +56,9 @@ See [schema.sql](/backend/schema.sql) for final schema.
 ### System Design
 ![System Design Diagram](media/Final%20Project%20System%20Design.png)
 
+### Demo Video
+See in-class demo [here](https://byu.sharepoint.com/:v:/r/sites/CS452Fall2025/Shared%20Documents/Class%20and%20Recordings/Recordings/Class%20452-20251208_205327UTC-Meeting%20Recording.mp4?csf=1&web=1&e=JFPB1X&nav=eyJyZWZlcnJhbEluZm8iOnsicmVmZXJyYWxBcHAiOiJTdHJlYW1XZWJBcHAiLCJyZWZlcnJhbFZpZXciOiJTaGFyZURpYWxvZy1MaW5rIiwicmVmZXJyYWxBcHBQbGF0Zm9ybSI6IldlYiIsInJlZmVycmFsTW9kZSI6InZpZXcifSwicGxheWJhY2tPcHRpb25zIjp7InN0YXJ0VGltZUluU2Vjb25kcyI6MzE0Ny42OX19).
+
 ### What I Learned (Key Learnings)
 - AI is an extremely effective tool for fleshing out requirements. I wrote the initial list, then had AI fill in any gaps and ask me questions about areas that were underrepresented. It resulted in the much more thorough list of requirements that you see above.
 - AWS is really hard to connect to from code if you can't find the right SDK. It took me a while to figure out how to run SQL queries on my AWS Aurora DSQL database, and I kept trying unsuccessfully to authenticate myself in different ways, but what finally fixed it was using the official connector package from NPM (which was not very well-advertised on the AWS help site).
