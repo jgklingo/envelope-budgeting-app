@@ -79,4 +79,3 @@ I've been looking for a free or ad-supported budgeting app like this for a while
 - Performance Characteristics: The only performance optimization I performed was sending the transactions to Aurora DSQL in batches. At first, I was sending each transaction in its own request, which was too slow even with only around 400 transactions. Once I batched the requests into a single request, it took only a few seconds. It's hard to accurately gauge my performance since I only tested the app locally (and my computer is slow), but it's safe to assume that the interface would have been plenty responsive.
 - Authentication: As described under "Why This Project Interested Me," I used AWS Cognito for authentication, which basically solved the problem out of the box. It handles login and registration requests, email confirmation, and identity management with very limited effort on the part of the programmer.
 - Concurrency: Not applicable.
-- 
